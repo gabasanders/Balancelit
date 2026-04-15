@@ -1,0 +1,41 @@
+You are an AI coding agent working in this repo.
+
+Goal: build a personal finance app with a Streamlit frontend, Python backend, and Google Sheets (gspread) as the database.
+
+High-level architecture (keep boundaries strict)
+- UI: Streamlit entrypoint + pages. Pages should be thin: read inputs, call services, render results.
+- Services (use-cases): app actions (add/list/filter transactions, compute summaries). No Streamlit code here.
+- Domain/Models: canonical types (e.g., Transaction, Category). Validate/normalize at boundaries.
+- Data access: gspread/Google Sheets adapter + repositories. No business logic in DB adapters.
+- Transforms: pure data shaping/aggregation functions (pandas ok) used by services/viz.
+- Viz: chart/figure builders (Plotly) that accept validated data.
+- Config: settings loader and constants. Keep env/secrets handling centralized.
+
+Repo structure preference
+- Create a Python package folder `balance/` for core logic.
+- Keep Streamlit files in `app.py` and `pages/`.
+- Split current `transformations.py` into `balance/transforms/` (data shaping) and `balance/viz/` (Plotly figures).
+- Move current `database.py` into `balance/db/` as the Google Sheets adapter/repository layer.
+
+Security / secrets (hard rule)
+- Never commit credentials. Service account JSON (like the current `config.json`)should be in .gitignore.
+
+Data contracts (hard rule)
+- Do not pass raw DataFrames or dicts across layers without a clear contract.
+- Prefer domain models in services; convert to/from DataFrames only at the transforms boundary.
+- Standardize column names/types once (e.g., date as `datetime.date`, amount as `Decimal` or integer cents).
+- Normalize category strings (strip whitespace, consistent casing/accents if needed).
+
+Streamlit rules
+- Avoid expensive recomputation; use caching where appropriate (`st.cache_data` / `st.cache_resource`) for sheet reads.
+- No database calls from viz functions; all reads/writes happen via services/repositories.
+
+Coding style
+- Be minimalist: smallest change that satisfies the request.
+- Keep functions small and pure when possible; avoid hidden global state.
+- Avoid logging/print/debug statements unless requested.
+- Prefer explicit names over abbreviations; keep Portuguese column names consistent if the sheet uses them.
+
+Workflow
+- When adding new modules, also update imports/usages so the app still runs end-to-end.
+- After substantive edits, run lints/tests if available and fix issues you introduced.
