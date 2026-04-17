@@ -6,6 +6,7 @@ from balance.domain.parsing import transactions_from_dataframe
 
 
 def list_transactions(db: BalanceDatabase) -> list[Transaction]:
-    raw: pd.DataFrame = db.fetch_all_transactions()
+    raw = db.fetch_all_transactions()
+    print(f"Raw transactions: {raw}")
     return transactions_from_dataframe(raw)
 

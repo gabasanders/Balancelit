@@ -15,11 +15,16 @@ class BalanceDatabase:
         ]
         creds = Credentials.from_service_account_file(self.service_file, scopes=scopes)
         client = gspread.authorize(creds)
+        print(f"Opening spreadsheet: {self.spreadsheet_name}")
+        print(f"Client: {client}")
         return client.open(self.spreadsheet_name).sheet1
 
     def fetch_all_transactions(self):
-        sheet = self._open_first_sheet()
-        return get_as_dataframe(sheet)
+        try:
+            sheet = self._open_first_sheet()
+            return get_as_dataframe(sheet)
+        except Exception as e:
+            raise Exception(f"Error fetching all transactions: {e}")
 
     def insert_transaction(self, data, valor, categoria, descricao):
         sheet = self._open_first_sheet()

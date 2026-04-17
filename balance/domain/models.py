@@ -8,7 +8,8 @@ from typing import Literal
 
 @dataclass(frozen=True, slots=True)
 class Transaction:
-    occurred_on: date
+    id: int
+    date: date
     value: Decimal
     category: str
     type: Literal["income", "expense"] = "expense"
@@ -17,7 +18,6 @@ class Transaction:
 @dataclass(frozen=True, slots=True)
 class Category:
     name: str
-    type: Literal["income", "expense"]
-    color: str = "#000000"
+    color: str 
 
 

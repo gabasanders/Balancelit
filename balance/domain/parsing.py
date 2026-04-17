@@ -47,7 +47,7 @@ def _parse_category(value: Any) -> str:
     return s
 
 def _parse_type(value: Any) -> Literal["income", "expense"]:
-    s = str(value).strip()
+    s = str(value).lower().strip()
     if not s:
         raise ValueError("type is required")
     return s
@@ -60,17 +60,23 @@ def _parse_name(value: Any) -> str:
 
 def transaction_from_row(row: dict[str, Any]) -> Transaction:
     return Transaction(
-        occurred_on=_parse_date(row.get("Data")),
-        value=_parse_amount(row.get("Valor")),
-        category=_parse_category(row.get("Categoria")),
-        type=_parse_type(row.get("Tipo")),
-        name=_parse_name(row.get("Nome")),
+        id=_parse_id(row.get("id")),
+        date=_parse_date(row.get("date")),
+        value=_parse_amount(row.get("value")),
+        category=_parse_category(row.get("category")),
+        type=_parse_type(row.get("type")),
+        name=_parse_name(row.get("name")),
 )
+
+def _parse_id(value: Any) -> int:
+    if value is None:
+        return 0
+    return int(value)
 
 def transactions_from_dataframe(df: pd.DataFrame) -> list[Transaction]:
     if df is None or df.empty:
         return []
-    required = {"Data", "Valor", "Categoria", "Tipo", "Nome"}
+    required = {"id", "date", "value", "category", "type", "name"}
     missing = required - set(df.columns)
     if missing:
         raise ValueError(f"missing columns: {sorted(missing)}")
