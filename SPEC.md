@@ -16,7 +16,7 @@ The database consists of four tables (worksheets):
 * **`Transactions`**: The primary ledger.
     * Columns: `id`, `date`, `category`, `name`, `type`, `value`, 'nfe-link'
 * **`Recurring`**: Definitions for fixed monthly costs.
-    * Columns: `name`, `category`, `type`, `var`, `max`, `min`.
+    * Columns: `name`, `category`, `type`, `value`.
 * **`Categories`**: Definition of the categories
     * Columns: `name`, `color`
 
@@ -44,6 +44,7 @@ Enable the user to insert expenses data in the database via UI.
     1. A selectable square to select between:
         - Categories
         - Transactions
+        - Recurring
     2. When transactions is selected: 
         2.1. A dropdown menu to choose from:
             - Category
@@ -56,6 +57,13 @@ Enable the user to insert expenses data in the database via UI.
     3. When Categories is selected:
         3.1 A color Picker
         3.2 A input box for Name
+    4. When Recurring is selected:
+        4.1. A dropdown menu to choose from:
+            - Category
+            - Type
+        4.2. A text input box for
+            - Name
+            - Value
 
 * **Additional Beahvior:**
     - The app should have a 'memory', so the last entries of the user are stored. This can be stored in a simple JSON file. 
@@ -63,5 +71,19 @@ Enable the user to insert expenses data in the database via UI.
     - The upload button should trigger a function that will:
         - Fetch the latest data online and check the latest ID.
         - Add the new items with an assured unique ID.
+
+### Page 3: Recurring Expenses
+
+* **Page Objective**: Let the user define the expected income and expenses for each category monthly. This should help to compare, for each month, how much has been spent for each category and whether should reduce costs or not.
+
+* **Must Have:**
+    1. A waterfall chart, where:
+        1.1. The first bar represents the sum of income, and should be the tallest. This bar should be green.
+        1.2. The following bars represent the cost of each category, reducing the income bar. These bars should be red.
+        1.3. When hovering the mouse ouver each bar, the user should be able to see a tooltip with:
+            - All the items inside that category that sum up to the total value.
+            - The % that item represents of the total income for each item.
+         
+
 
 

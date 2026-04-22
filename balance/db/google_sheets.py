@@ -35,3 +35,12 @@ class BalanceDatabase:
     def insert_categories(self, rows):
         self._open_sheet(1).append_rows(rows)
 
+    def fetch_all_recurring(self):
+        try:
+            return get_as_dataframe(self._open_sheet(2))
+        except Exception as e:
+            raise Exception(f"Error fetching recurring: {e}")
+
+    def insert_recurring(self, rows):
+        self._open_sheet(2).append_rows(rows)
+
