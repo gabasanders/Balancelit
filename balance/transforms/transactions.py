@@ -9,6 +9,11 @@ import pandas as pd
 from balance.domain.models import Transaction
 
 
+def _item_line(name: str, value: float) -> str:
+    n = (name or "").strip()
+    return f"{n}: {value:,.2f}" if n else f"{value:,.2f}"
+
+
 def filter_transactions(
     transactions: list[Transaction],
     start: date,
@@ -42,20 +47,24 @@ def aggregate_expenses_for_chart(
     view_type: Literal["Yearly", "Monthly"],
 ) -> pd.DataFrame:
     rows = [
-        {"date": t.date, "category": t.category, "value": float(t.value)}
+        {"date": t.date, "category": t.category, "value": float(t.value), "name": t.name}
         for t in transactions
         if t.type == "expense"
     ]
     if not rows:
-        return pd.DataFrame(columns=["period", "category", "value"])
+        return pd.DataFrame(columns=["period", "category", "value", "items"])
     df = pd.DataFrame(rows)
     dt = pd.to_datetime(df["date"])
     if view_type == "Yearly":
         df["period"] = dt.dt.to_period("M").astype(str)
     else:
         df["period"] = dt.dt.strftime("%Y-%m-%d")
-    return (
-        df.groupby(["period", "category"], as_index=False)["value"]
-        .sum()
-        .sort_values("period")
+    df["item_line"] = [_item_line(str(r["name"]), float(r["value"])) for r in rows]
+    sums = df.groupby(["period", "category"], as_index=False)["value"].sum()
+    items = (
+        df.sort_values("value", ascending=False)
+        .groupby(["period", "category"], sort=False)["item_line"]
+        .agg("<br>".join)
+        .reset_index(name="items")
     )
+    return sums.merge(items, on=["period", "category"]).sort_values("period")

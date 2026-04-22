@@ -8,26 +8,30 @@ class BalanceDatabase:
         self.service_file = service_account_file
         self.spreadsheet_name = spreadsheet_name
 
-    def _open_first_sheet(self):
+    def _open_sheet(self, index=0):
         scopes = [
             "https://spreadsheets.google.com/feeds",
             "https://www.googleapis.com/auth/drive",
         ]
         creds = Credentials.from_service_account_file(self.service_file, scopes=scopes)
         client = gspread.authorize(creds)
-        print(f"Opening spreadsheet: {self.spreadsheet_name}")
-        print(f"Client: {client}")
-        return client.open(self.spreadsheet_name).sheet1
+        return client.open(self.spreadsheet_name).get_worksheet(index)
 
     def fetch_all_transactions(self):
         try:
-            sheet = self._open_first_sheet()
-            return get_as_dataframe(sheet)
+            return get_as_dataframe(self._open_sheet(0))
         except Exception as e:
-            raise Exception(f"Error fetching all transactions: {e}")
+            raise Exception(f"Error fetching transactions: {e}")
 
-    def insert_transaction(self, data, valor, categoria, descricao):
-        sheet = self._open_first_sheet()
-        sheet.append_row([data, valor, categoria, descricao])
-        return None
+    def insert_transactions(self, rows):
+        self._open_sheet(0).append_rows(rows)
+
+    def fetch_all_categories(self):
+        try:
+            return get_as_dataframe(self._open_sheet(1))
+        except Exception as e:
+            raise Exception(f"Error fetching categories: {e}")
+
+    def insert_categories(self, rows):
+        self._open_sheet(1).append_rows(rows)
 

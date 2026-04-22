@@ -6,7 +6,7 @@ from typing import Any, Iterable, Literal
 
 import pandas as pd
 
-from balance.domain.models import Transaction
+from balance.domain.models import Category, Transaction
 
 def _parse_date(value: Any) -> date:
     if isinstance(value, date) and not isinstance(value, datetime):
@@ -72,6 +72,39 @@ def _parse_id(value: Any) -> int:
     if value is None:
         return 0
     return int(value)
+
+def _parse_color(value: Any) -> str:
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return "#888888"
+    s = str(value).strip()
+    if not s or s.lower() == "nan":
+        return "#888888"
+    if not s.startswith("#") and len(s) in (3, 6) and all(
+        c in "0123456789abcdefABCDEF" for c in s
+    ):
+        s = "#" + s
+    return s
+
+
+def categories_from_dataframe(df: pd.DataFrame) -> list[Category]:
+    if df is None or df.empty:
+        return []
+    lower = {str(c).strip().lower(): c for c in df.columns}
+    name_key = lower.get("name")
+    if not name_key:
+        return []
+    color_key = lower.get("color")
+    out: list[Category] = []
+    for raw in df.to_dict(orient="records"):
+        name_val = raw.get(name_key)
+        try:
+            name = _parse_category(name_val)
+        except ValueError:
+            continue
+        color_raw = raw.get(color_key) if color_key else None
+        out.append(Category(name=name, color=_parse_color(color_raw)))
+    return out
+
 
 def transactions_from_dataframe(df: pd.DataFrame) -> list[Transaction]:
     if df is None or df.empty:

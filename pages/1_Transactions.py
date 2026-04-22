@@ -5,6 +5,7 @@ from balance.config.settings import (
     get_google_spreadsheet_name,
 )
 from balance.db.google_sheets import BalanceDatabase
+from balance.services.categories import list_categories
 from balance.services.transactions import list_transactions
 from balance.transforms.transactions import (
     aggregate_expenses_for_chart,
@@ -21,6 +22,7 @@ try:
         get_google_spreadsheet_name(),
     )
     all_txs = list_transactions(db)
+    sheet_categories = list_categories(db)
 except Exception as e:
     st.error(f"Could not load data: {e}")
     st.stop()
@@ -48,11 +50,15 @@ if not selected:
     st.warning("Select at least one category.")
     st.stop()
 
-view_type = st.radio("View", ["Yearly", "Monthly"], horizontal=True)
+view_type = st.radio("View", ["Monthly","Yearly"], horizontal=True)
 
 filtered = filter_transactions(all_txs, start, end, selected)
 bal = calculate_balance(filtered)
 st.metric("Balance (income − expenses)", f"{bal:,.2f}")
 
 chart_df = aggregate_expenses_for_chart(filtered, view_type)
-st.plotly_chart(plot_expenses_stacked_bar(chart_df, view_type), use_container_width=True)
+category_colors = {c.name: c.color for c in sheet_categories}
+st.plotly_chart(
+    plot_expenses_stacked_bar(chart_df, view_type, category_colors),
+    use_container_width=True,
+)
