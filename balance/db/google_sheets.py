@@ -44,3 +44,30 @@ class BalanceDatabase:
     def insert_recurring(self, rows):
         self._open_sheet(2).append_rows(rows)
 
+    def fetch_all_items(self):
+        try:
+            return get_as_dataframe(self._open_sheet(3))
+        except Exception as e:
+            raise Exception(f"Error fetching items: {e}")
+
+    def insert_items(self, rows):
+        self._open_sheet(3).append_rows(rows)
+
+    def update_transaction_nfe_link(self, tx_id: int, nfe_link: str) -> None:
+        sheet = self._open_sheet(0)
+        headers = sheet.row_values(1)
+        col_idx = next(
+            (i + 1 for i, h in enumerate(headers) if h.lower().strip() in ("nfe-link", "nfe_link")),
+            None,
+        )
+        if col_idx is None:
+            raise ValueError("nfe_link column not found in Transactions sheet")
+        id_col = sheet.col_values(1)
+        row_idx = next(
+            (i + 2 for i, val in enumerate(id_col[1:]) if str(val).strip() == str(tx_id)),
+            None,
+        )
+        if row_idx is None:
+            raise ValueError(f"Transaction ID {tx_id} not found")
+        sheet.update_cell(row_idx, col_idx, nfe_link)
+

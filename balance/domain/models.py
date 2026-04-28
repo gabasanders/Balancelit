@@ -14,6 +14,15 @@ class Transaction:
     category: str
     type: Literal["income", "expense"] = "expense"
     name: str = ""
+    nfe_link: str = ""
+
+@dataclass(frozen=True, slots=True)
+class Item:
+    transaction_id: int
+    item: str
+    quantity: Decimal
+    unit_value: Decimal
+    total_value: Decimal
 
 @dataclass(frozen=True, slots=True)
 class Category:

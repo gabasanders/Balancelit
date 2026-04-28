@@ -13,12 +13,40 @@
 ## 2. Data Architecture (Google Sheets)
 The database consists of four tables (worksheets):
 
-* **`Transactions`**: The primary ledger.
-    * Columns: `id`, `date`, `category`, `name`, `type`, `value`, 'nfe-link'
-* **`Recurring`**: Definitions for fixed monthly costs.
-    * Columns: `name`, `category`, `type`, `value`.
-* **`Categories`**: Definition of the categories
-    * Columns: `name`, `color`
+
+```mermaid
+erDiagram
+    CATEGORIES ||--o{ TRANSACTIONS : "classifies"
+    CATEGORIES ||--o{ RECURRING : "classifies"
+    TRANSACTIONS ||--o{ ITEMS : "contains"
+
+    TRANSACTIONS {
+        int id PK
+        string date
+        string category FK
+        string name
+        string type
+        float value
+        string nfe_link
+    }    
+    ITEMS {
+        int transaction_id FK
+        string name
+        float quantity
+        float unit_value
+        float total_value
+    }
+    CATEGORIES {
+        string name PK
+        string color
+    }
+    RECURRING {
+        string name PK
+        string category FK
+        string type
+        float value
+    }
+```
 
 ---
 
@@ -83,7 +111,33 @@ Enable the user to insert expenses data in the database via UI.
         1.3. When hovering the mouse ouver each bar, the user should be able to see a tooltip with:
             - All the items inside that category that sum up to the total value.
             - The % that item represents of the total income for each item.
+            - NEW: The total amount of the category followed by the % that the entire category represents of the total income
          
 
 
+### Page 4: Items Page
+* **Page Objective**: This page should allow the user to check specific items that were bought inside a given transaction.
 
+* **Must Have:**
+    1. A selectable square to select between:
+        - Analysis
+        - Add NFE
+    2. When 'Analysis' is selected, the user should see a page where he can expand transactions and see their items.
+        - This should show a list of transactions with a expandable button, which will them show:
+            - A table with :
+                - All the items and its columns (except for transaction_id).
+                - The last column should be the the % of the total value the item in relation to the total value of the transaction
+    3. When 'Add NFE' is selected, a section to add items should appear:
+        - It should show a list of the last 20 transactions and allow the user to add a link to the receipt for that given transaction.
+        - Once the user has added the transactions it selected, a button should appear with the text 'Upload'
+        - When upload has been clicked, it should call the function extract_nfce_data() from the nfe_scrape file inside the services module, waiting for the return of the data.
+        - Finally, once the data is returned and the items are fecthed, it should upload the items to the Items table.
+* **Notes:**
+    - When the user add a link to the transaction, the column 'nfe_link' of the transaction in the Transactions table should be filled with this information.
+    - When upload is clicked, there should be a check to see if there are rows in the Items table with that Transaction ID. If so, a warning should appear warning this and asking if if should proceed.
+
+
+
+
+* **General Guides:**
+    - For User Experience purpouses, the fecthed DFs should be stored in cache and shared between pages, this way there would be no need to wait sometime every page change. However, every page should have a button that can refresh the data.

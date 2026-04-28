@@ -6,7 +6,7 @@ from typing import Any, Iterable, Literal
 
 import pandas as pd
 
-from balance.domain.models import Category, Transaction
+from balance.domain.models import Category, Transaction, Item
 
 def _parse_date(value: Any) -> date:
     if isinstance(value, date) and not isinstance(value, datetime):
@@ -66,6 +66,7 @@ def transaction_from_row(row: dict[str, Any]) -> Transaction:
         category=_parse_category(row.get("category")),
         type=_parse_type(row.get("type")),
         name=_parse_name(row.get("name")),
+        nfe_link=_parse_name(row.get("nfe-link", row.get("nfe_link"))),
 )
 
 def _parse_id(value: Any) -> int:
@@ -109,11 +110,22 @@ def categories_from_dataframe(df: pd.DataFrame) -> list[Category]:
 def transactions_from_dataframe(df: pd.DataFrame) -> list[Transaction]:
     if df is None or df.empty:
         return []
-    required = {"id", "date", "value", "category", "type", "name"}
-    missing = required - set(df.columns)
-    if missing:
-        raise ValueError(f"missing columns: {sorted(missing)}")
-        
-    rows = df[list(required)].to_dict(orient="records")
+    
+    rows = df.to_dict(orient="records")
     return [transaction_from_row(r) for r in rows]
+
+def item_from_row(row: dict[str, Any]) -> Item:
+    return Item(
+        transaction_id=_parse_id(row.get("transaction_id")),
+        item=_parse_name(row.get("item")),
+        quantity=_parse_amount(row.get("quantity")),
+        unit_value=_parse_amount(row.get("unit_value")),
+        total_value=_parse_amount(row.get("total_value")),
+    )
+
+def items_from_dataframe(df: pd.DataFrame) -> list[Item]:
+    if df is None or df.empty:
+        return []
+    rows = df.to_dict(orient="records")
+    return [item_from_row(r) for r in rows]
 
