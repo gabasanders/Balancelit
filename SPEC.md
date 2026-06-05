@@ -62,6 +62,17 @@ Goal: Provide a real-time transactions page to understand all the incomes and ou
      - Date filters and Category filters
      - Categories represent different colors in the same bar.
      - Yearly (bars are months) and monthly (bars are days) view. Should be able to toggle between them
+    2. 3 Cards on the top of the page:
+        2.1 - Balance
+        2.2 - Income: When hovered over, should show every income transaction
+        2.3 - Expenses: When hovered over, should show the total of each category that composes the expenses and the % it represents from the total
+
+* **Loading Behavior:**
+    - While any data is being fetched or processed, a Streamlit spinner (`st.spinner`) with a descriptive message (e.g. "Loading transactions...") must be shown in place of each element that is not yet ready.
+    - Filters and controls should be rendered immediately; only the chart and summary metrics should be wrapped in the spinner so the page never appears blank.
+
+* **Notes:**
+    - Everytime the user logs in the page, the date should be automatically filtered for the current month - form day 1 to current
 
 ### Page 2: Add Info
 
@@ -73,6 +84,7 @@ Enable the user to insert expenses data in the database via UI.
         - Categories
         - Transactions
         - Recurring
+        - Add NFE
     2. When transactions is selected: 
         2.1. A dropdown menu to choose from:
             - Category
@@ -82,6 +94,7 @@ Enable the user to insert expenses data in the database via UI.
             - Value
             - NFE-link
         2.3. A date picker for date
+        2.4. If the user fills the NFE-link field, it should automatically trigger the same item-fetching pipeline used in 'Add NFE': call `extract_nfce_data()` from `services/nfe_scrape`, wait for the return, and upload the resulting items to the Items table. The duplicate-items check (same Transaction ID already present) must also apply here.
     3. When Categories is selected:
         3.1 A color Picker
         3.2 A input box for Name
@@ -92,6 +105,14 @@ Enable the user to insert expenses data in the database via UI.
         4.2. A text input box for
             - Name
             - Value
+    5. When 'Add NFE' is selected:
+        - It should show **only** transactions that have no value in the `nfe_link` column.
+        - The user can add a link to the receipt for each listed transaction.
+        - Once the user has added at least one link, a button should appear with the text 'Upload'.
+        - When 'Upload' is clicked, it should call `extract_nfce_data()` from the `nfe_scrape` file inside the services module, waiting for the return of the data.
+        - Once the data is returned and the items are fetched, it should upload the items to the Items table.
+        - When the user adds a link to a transaction, the `nfe_link` column of that transaction in the Transactions table should be updated.
+        - Before uploading, there should be a check to see if rows already exist in the Items table for that Transaction ID. If so, a warning should appear asking whether to proceed.
 
 * **Additional Beahvior:**
     - The app should have a 'memory', so the last entries of the user are stored. This can be stored in a simple JSON file. 
@@ -119,22 +140,10 @@ Enable the user to insert expenses data in the database via UI.
 * **Page Objective**: This page should allow the user to check specific items that were bought inside a given transaction.
 
 * **Must Have:**
-    1. A selectable square to select between:
-        - Analysis
-        - Add NFE
-    2. When 'Analysis' is selected, the user should see a page where he can expand transactions and see their items.
-        - This should show a list of transactions with a expandable button, which will them show:
-            - A table with :
-                - All the items and its columns (except for transaction_id).
-                - The last column should be the the % of the total value the item in relation to the total value of the transaction
-    3. When 'Add NFE' is selected, a section to add items should appear:
-        - It should show a list of the last 20 transactions and allow the user to add a link to the receipt for that given transaction.
-        - Once the user has added the transactions it selected, a button should appear with the text 'Upload'
-        - When upload has been clicked, it should call the function extract_nfce_data() from the nfe_scrape file inside the services module, waiting for the return of the data.
-        - Finally, once the data is returned and the items are fecthed, it should upload the items to the Items table.
-* **Notes:**
-    - When the user add a link to the transaction, the column 'nfe_link' of the transaction in the Transactions table should be filled with this information.
-    - When upload is clicked, there should be a check to see if there are rows in the Items table with that Transaction ID. If so, a warning should appear warning this and asking if if should proceed.
+    1. A list of transactions with an expandable button, which will show:
+        - A table with:
+            - All the items and its columns (except for transaction_id).
+            - The last column should be the % of the total value of the item in relation to the total value of the transaction.
 
 
 

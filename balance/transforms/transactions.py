@@ -31,15 +31,43 @@ def filter_transactions(
     return out
 
 
+def calculate_income(transactions: list[Transaction]) -> Decimal:
+    return sum((t.value for t in transactions if t.type == "income"), Decimal(0))
+
+
+def calculate_expenses(transactions: list[Transaction]) -> Decimal:
+    return sum((t.value for t in transactions if t.type == "expense"), Decimal(0))
+
+
 def calculate_balance(transactions: list[Transaction]) -> Decimal:
-    income = Decimal(0)
-    expenses = Decimal(0)
+    return calculate_income(transactions) - calculate_expenses(transactions)
+
+
+def income_transaction_details(
+    transactions: list[Transaction],
+) -> list[tuple[str, str, Decimal]]:
+    return [
+        (t.name or "—", str(t.date), t.value)
+        for t in transactions
+        if t.type == "income"
+    ]
+
+
+def expenses_by_category_breakdown(
+    transactions: list[Transaction],
+) -> list[tuple[str, Decimal, float]]:
+    from collections import defaultdict
+
+    totals: dict[str, Decimal] = defaultdict(Decimal)
     for t in transactions:
-        if t.type == "income":
-            income += t.value
-        elif t.type == "expense":
-            expenses += t.value
-    return income - expenses
+        if t.type == "expense":
+            totals[t.category] += t.value
+    grand = sum(totals.values(), Decimal(0))
+    result = [
+        (cat, total, float(total / grand * 100) if grand else 0.0)
+        for cat, total in totals.items()
+    ]
+    return sorted(result, key=lambda x: x[1], reverse=True)
 
 
 def aggregate_expenses_for_chart(
